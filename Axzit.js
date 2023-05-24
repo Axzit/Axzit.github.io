@@ -3,8 +3,7 @@
 
 function setup()
 {
-    createCanvas(720, 720);
-
+  size(720, 720);
 }
 
 
