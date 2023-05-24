@@ -1,8 +1,14 @@
-function setup() {
+
+
+
+function setup()
+{
+    createCanvas(720, 720);
 
 }
 
 
-function draw() {
-
+function draw()
+{
+    background(20);
 }
