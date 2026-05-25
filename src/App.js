@@ -11,19 +11,19 @@ const App = () =>
         'div',
         { className: 'hero-copy' },
         React.createElement('p', { className: 'eyebrow' }, 'Axzit'),
-        React.createElement('h1', null, 'Futuristic digital presence'),
+        React.createElement('h1', null, 'A Sharad Company'),
         React.createElement(
           'p',
           null,
-          'A sleek, modern portfolio experience for the next generation of creators, builders, and visionary brands.'
+          'Prospecting a conglomerate taping into Medicine, Tech, Research & Related Services'
         ),
         React.createElement(
           'div',
           { className: 'hero-actions' },
           React.createElement(
             'a',
-            { className: 'btn btn-primary', href: '#about' },
-            'Explore Axzit'
+            { className: 'btn btn-primary', href: '/SandSim' },
+            'SandSim/Diya'
           ),
           React.createElement(
             'a',
@@ -39,11 +39,11 @@ const App = () =>
           'div',
           { className: 'panel-card' },
           React.createElement('span', { className: 'panel-title' }, 'Status'),
-          React.createElement('span', { className: 'panel-value' }, 'Live'),
+          React.createElement('span', { className: 'panel-value' }, 'On Hold'),
           React.createElement(
             'p',
             { className: 'panel-copy' },
-            'Axzit is ready for launch with responsive React styling.'
+            'Looking for Partners to work with us'
           )
         )
       )
@@ -55,7 +55,7 @@ const App = () =>
       React.createElement(
         'p',
         null,
-        'Axzit blends cutting-edge visuals with accessible design to create a clean, responsive web platform. This site is built with React and Vite for fast loading and modern workflows.'
+        'Our Goal is to create a Parent Company taping into BioTech Research, Medicine, Tech & other related B2C Services.'
       )
     ),
     React.createElement(
@@ -64,20 +64,20 @@ const App = () =>
       React.createElement(
         'article',
         { className: 'feature-card' },
-        React.createElement('h3', null, 'Responsive layout'),
-        React.createElement('p', null, 'Designed to work smoothly on desktop, tablet, and mobile devices.')
+        React.createElement('h3', null, 'Health Services'),
+        React.createElement('p', null, 'Have a chain of Quality Hospitals')
       ),
       React.createElement(
         'article',
         { className: 'feature-card' },
-        React.createElement('h3', null, 'Accessible by default'),
-        React.createElement('p', null, 'Semantic markup, readable contrast, and keyboard-friendly navigation.')
+        React.createElement('h3', null, 'Tech'),
+        React.createElement('p', null, 'Provide AI Powered Health Solutions')
       ),
       React.createElement(
         'article',
         { className: 'feature-card' },
-        React.createElement('h3', null, 'Customizable branding'),
-        React.createElement('p', null, 'Easy to extend with your own portfolio, services, or creative story.')
+        React.createElement('h3', null, 'Research'),
+        React.createElement('p', null, 'Have a Research Wing focused on BioTech and Medicine')
       )
     ),
     React.createElement(
@@ -87,12 +87,12 @@ const App = () =>
       React.createElement(
         'p',
         null,
-        'Ready to shape the future? Reach out to start the next Axzit project.'
+        'Ready to shape the future? Reach out to join Axzit'
       ),
       React.createElement(
         'a',
-        { className: 'btn btn-primary', href: 'mailto:hello@example.com' },
-        'hello@axzit.io'
+        { className: 'btn btn-primary', href: '' },
+        'axzitofficial@gmail.com'
       )
     )
   );
