@@ -43,7 +43,7 @@ const App = () =>
           React.createElement(
             'p',
             { className: 'panel-copy' },
-            'Looking for Partners to work with us.'
+            'Looking for Partners to work with us'
           )
         )
       )
