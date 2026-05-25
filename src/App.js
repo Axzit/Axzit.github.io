@@ -1,7 +1,19 @@
 import React from 'https://esm.sh/react@18.3.1';
+import SandSim from './SandSim.js';
 
-const App = () =>
-  React.createElement(
+const App = () => {
+  const { useEffect, useState } = React;
+  const [isSand, setIsSand] = useState(typeof window !== 'undefined' && window.location.hash === '#SandSim');
+
+  useEffect(() => {
+    const onHash = () => setIsSand(window.location.hash === '#SandSim');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  if (isSand) return React.createElement(SandSim);
+
+  return React.createElement(
     'main',
     { className: 'app-shell' },
     React.createElement(
@@ -22,7 +34,7 @@ const App = () =>
           { className: 'hero-actions' },
           React.createElement(
             'a',
-            { className: 'btn btn-primary', href: '/SandSim' },
+            { className: 'btn btn-primary', href: '#SandSim' },
             'SandSim/Diya'
           ),
           React.createElement(
@@ -96,5 +108,6 @@ const App = () =>
       )
     )
   );
+};
 
 export default App;
