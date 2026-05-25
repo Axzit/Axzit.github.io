@@ -55,7 +55,7 @@ const App = () =>
       React.createElement(
         'p',
         null,
-        'Our Goal is to create a Parent Company taping into BioTech Research, Medicine, Tech & other related B2C Services.'
+        'Our Goal is to create a Parent Company taping into BioTech Research, Medicine, Tech & other related B2C Services'
       )
     ),
     React.createElement(
