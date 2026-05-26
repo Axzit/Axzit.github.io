@@ -1,0 +1,75 @@
+.sandsim-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100vh;
+  padding: 16px 24px;
+  overflow: auto;
+}
+
+.sandsim-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sandsim-title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.sandsim-canvas-wrap {
+  width: 100%;
+  max-height: 70vh;
+  background: rgba(10, 12, 18, 0.6);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  touch-action: none;
+}
+
+.sandsim-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 100%;
+  border-radius: 12px;
+  user-select: none;
+}
+
+.sandsim-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.sandsim-back {
+  flex: 1 1 100%;
+  min-width: 120px;
+}
+
+@media (max-width: 768px) {
+  .sandsim-shell {
+    padding: 12px;
+  }
+
+  .sandsim-title {
+    font-size: 1.25rem;
+  }
+
+  .sandsim-actions {
+    gap: 8px;
+  }
+
+  .sandsim-actions .btn {
+    flex: 1 1 calc(50% - 6px);
+    min-height: 48px;
+    font-size: 14px;
+    padding: 0 20px;
+  }
+}
