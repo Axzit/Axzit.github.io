@@ -14,7 +14,7 @@ export default function SandSim() {
   const [paused, setPaused] = useState(false);
   const [eraseMode, setEraseMode] = useState(false);
 
-  const res = 5;
+  const res = 2;
 
   useEffect(() => {
     pausedRef.current = paused;
