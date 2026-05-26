@@ -110,16 +110,65 @@ export default function SandSim() {
             newCells[i][this.h - 1] = true;
           }
 
+          const falling = Array.from({ length: this.w }, () => Array(this.h).fill(false));
+          const groundConnected = Array.from({ length: this.w }, () => Array(this.h).fill(false));
+          const lowestMovable = Array(this.w).fill(-1);
+
+          const hasSupportBelow = (i, j) => j + 1 === this.h - 1 || this.cells[i][j + 1];
+
+          for (let j = this.h - 1; j >= 0; j--) {
+            for (let i = 0; i < this.w; i++) {
+              if (!this.cells[i][j]) continue;
+              if (j === this.h - 1) {
+                falling[i][j] = false;
+              } else {
+                const support = hasSupportBelow(i, j);
+                falling[i][j] = !support || falling[i][j + 1];
+              }
+            }
+          }
+
+          for (let j = this.h - 2; j >= 0; j--) {
+            for (let i = 0; i < this.w; i++) {
+              if (!this.cells[i][j]) continue;
+              const support = hasSupportBelow(i, j);
+              groundConnected[i][j] = support && (j === this.h - 2 || groundConnected[i][j + 1]);
+            }
+          }
+
+          for (let i = 0; i < this.w; i++) {
+            for (let j = this.h - 2; j >= 0; j--) {
+              if (!this.cells[i][j]) continue;
+              const belowOccupied = hasSupportBelow(i, j);
+              const belowIsFalling = belowOccupied && falling[i][j + 1];
+              if (!belowOccupied || belowIsFalling) continue;
+              const leftAvailable = i > 0 && !this.cells[i - 1][j + 1];
+              const rightAvailable = i < this.w - 1 && !this.cells[i + 1][j + 1];
+              if (leftAvailable || rightAvailable) {
+                lowestMovable[i] = j;
+                break;
+              }
+            }
+          }
+
           for (let j = 0; j < this.h - 1; j++) {
             for (let i = 0; i < this.w; i++) {
               if (!this.cells[i][j]) continue;
-              if (!this.cells[i][j + 1]) {
+              const belowOccupied = hasSupportBelow(i, j);
+              const belowIsFalling = belowOccupied && falling[i][j + 1];
+
+              if (!belowOccupied || belowIsFalling) {
                 newCells[i][j + 1] = true;
                 continue;
               }
 
               const leftAvailable = i > 0 && !this.cells[i - 1][j + 1];
               const rightAvailable = i < this.w - 1 && !this.cells[i + 1][j + 1];
+
+              if (j !== lowestMovable[i]) {
+                newCells[i][j] = true;
+                continue;
+              }
 
               if (leftAvailable && rightAvailable) {
                 if (Math.random() < 0.5) newCells[i - 1][j + 1] = true;
