@@ -57,12 +57,16 @@ export default function SandSim() {
         }
       };
 
+      const handleContextMenu = (event) => event.preventDefault();
+
       canvas.addEventListener('touchstart', handleTouch, { passive: false });
       canvas.addEventListener('touchmove', handleTouch, { passive: false });
+      canvas.addEventListener('contextmenu', handleContextMenu);
 
       return () => {
         canvas.removeEventListener('touchstart', handleTouch);
         canvas.removeEventListener('touchmove', handleTouch);
+        canvas.removeEventListener('contextmenu', handleContextMenu);
       };
     };
 
@@ -84,6 +88,7 @@ export default function SandSim() {
         }
 
         randomize(scaleX = 0.08, scaleY = 0.08, cutoff = 0.5) {
+          this.p.noiseSeed(Math.floor(Math.random() * 1000000));
           for (let i = 0; i < this.w; i++) {
             for (let j = 0; j < this.h; j++) {
               const noiseVal = this.p.noise(i * scaleX, j * scaleY);
@@ -223,8 +228,13 @@ export default function SandSim() {
 
           if (p.mouseIsPressed) {
             userInteractedRef.current = true;
-            if (eraseRef.current) gridRef.current.removeParticle(p.mouseX, p.mouseY);
-            else gridRef.current.createParticle(p.mouseX, p.mouseY);
+            if (p.mouseButton === p.RIGHT) {
+              gridRef.current.removeParticle(p.mouseX, p.mouseY);
+            } else if (eraseRef.current) {
+              gridRef.current.removeParticle(p.mouseX, p.mouseY);
+            } else {
+              gridRef.current.createParticle(p.mouseX, p.mouseY);
+            }
           }
 
           if (!userInteractedRef.current && !pausedRef.current && p.frameCount % 30 === 0) {
