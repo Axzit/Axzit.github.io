@@ -182,6 +182,19 @@ a {
   color: #d7e2ff;
 }
 
+/* SandSim canvas styles */
+.sandsim-shell canvas {
+  display: block;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sandsim-shell {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: auto;
+}
+
 @media (max-width: 860px) {
   .page-hero {
     grid-template-columns: 1fr;
@@ -195,5 +208,33 @@ a {
 
   .page-hero {
     padding-top: 40px;
+  }
+
+  /* Mobile-specific styles for SandSim */
+  .sandsim-shell {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: auto;
+  }
+
+  .sandsim-shell button {
+    min-height: 48px !important;
+    font-size: 14px !important;
+    padding: 0 20px !important;
+    border: 1px solid transparent !important;
+    border-radius: 999px !important;
+    touch-action: manipulation;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .sandsim-shell .btn-secondary {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f4f7ff !important;
+  }
+
+  .sandsim-shell .btn-primary {
+    background: linear-gradient(135deg, #4f6dff, #58f6d7) !important;
+    color: #071124 !important;
   }
 }
