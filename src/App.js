@@ -14,9 +14,9 @@ const App = () => {
   if (isSand) return React.createElement(SandSim);
 
   const features = [
-    { title: 'Health Services', description: 'Have a chain of Quality Hospitals' },
-    { title: 'Tech', description: 'Provide AI Powered Health Solutions' },
-    { title: 'Research', description: 'Have a Research Wing focused on BioTech and Medicine' }
+    { title: 'Coding', description: 'Loving this Hobby since 2017' },
+    { title: 'Problem Solving', description: 'Best Liesure Time' },
+    { title: 'Research', description: 'Everything from Quantum to Classical Physics, Cellular Biology to Technology, Computer Science and Maths' }
   ];
 
   return React.createElement(
@@ -29,11 +29,11 @@ const App = () => {
         'div',
         { className: 'hero-copy' },
         React.createElement('p', { className: 'eyebrow' }, 'Axzit'),
-        React.createElement('h1', null, 'A Sharad Company'),
+        React.createElement('h1', null, 'A Sharad Hobby'),
         React.createElement(
           'p',
           null,
-          'Prospecting a conglomerate taping into Medicine, Tech, Research & Related Services'
+          'This is a Hobby Projects Site, Not very actively maintained, but I seldom share some of my projects here;'
         ),
         React.createElement(
           'div',
@@ -50,7 +50,7 @@ const App = () => {
           { className: 'panel-card' },
           React.createElement('span', { className: 'panel-title' }, 'Status'),
           React.createElement('span', { className: 'panel-value' }, 'On Hold'),
-          React.createElement('p', { className: 'panel-copy' }, 'Looking for Partners to work with us')
+          React.createElement('p', { className: 'panel-copy' }, 'Looking for other Nerds to Join me')
         )
       )
     ),
@@ -61,7 +61,7 @@ const App = () => {
       React.createElement(
         'p',
         null,
-        'Our Goal is to create a Parent Company taping into BioTech Research, Medicine, Tech & other related B2C Services'
+        'The Dream of Creating usefeulness for human society'
       )
     ),
     React.createElement(
@@ -80,8 +80,8 @@ const App = () => {
       'section',
       { id: 'contact', className: 'section contact-section' },
       React.createElement('h2', null, 'Get in touch'),
-      React.createElement('p', null, 'Ready to shape the future? Reach out to join Axzit'),
-      React.createElement('a', { className: 'btn btn-primary', href: 'mailto:axzitofficial@gmail.com' }, 'axzitofficial@gmail.com')
+      React.createElement('p', null, 'Nerd? Lets have a chat at'),
+      React.createElement('a', { className: 'btn btn-primary', href: 'https://www.instagram.com/sharad.jpeg' }, 'Insta: Sharad.jpeg')
     )
   );
 };
