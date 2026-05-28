@@ -19,6 +19,7 @@ export default function SandSim({ gridState } = {}) {
   const [seedInput, setSeedInput] = useState('');
   const [threshold, setThreshold] = useState(128);
   const [invertImage, setInvertImage] = useState(false);
+  const [edgeDetect, setEdgeDetect] = useState(false);
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
   const [uploadedImageSrc, setUploadedImageSrc] = useState('');
@@ -417,6 +418,17 @@ export default function SandSim({ gridState } = {}) {
     ctx.fillRect(0, 0, cols, rows);
     ctx.drawImage(img, sx, sy, size, size, 0, 0, cols, rows);
     const data = ctx.getImageData(0, 0, cols, rows).data;
+    const luminance = Array.from({ length: rows }, (_, j) =>
+      Array.from({ length: cols }, (_, i) => {
+        const idx = (j * cols + i) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const a = data[idx + 3];
+        return a < 128 ? 0 : 0.299 * r + 0.587 * g + 0.114 * b;
+      })
+    );
+
     const state = Array.from({ length: rows }, (_, j) =>
       Array.from({ length: cols }, (_, i) => {
         const idx = (j * cols + i) * 4;
@@ -424,11 +436,22 @@ export default function SandSim({ gridState } = {}) {
         const g = data[idx + 1];
         const b = data[idx + 2];
         const a = data[idx + 3];
-        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-        const filled = a < 128 || luminance < thresholdValue;
+        if (edgeDetect) {
+          const left = i > 0 ? luminance[j][i - 1] : luminance[j][i];
+          const right = i < cols - 1 ? luminance[j][i + 1] : luminance[j][i];
+          const top = j > 0 ? luminance[j - 1][i] : luminance[j][i];
+          const bottom = j < rows - 1 ? luminance[j + 1][i] : luminance[j][i];
+          const gx = right - left;
+          const gy = bottom - top;
+          const gradient = Math.sqrt(gx * gx + gy * gy);
+          const edge = gradient >= thresholdValue;
+          return edge ? 1 : 0;
+        }
+        const filled = a < 128 || luminance[j][i] < thresholdValue;
         return invert ? (filled ? 0 : 1) : (filled ? 1 : 0);
       })
     );
+
     const colors = Array.from({ length: rows }, (_, j) =>
       Array.from({ length: cols }, (_, i) => {
         const idx = (j * cols + i) * 4;
@@ -464,6 +487,7 @@ export default function SandSim({ gridState } = {}) {
     const { state, colors } = await processImageSource(src, {
       threshold,
       invertImage,
+      edgeDetect,
       translateX,
       translateY,
       ...options
@@ -591,7 +615,7 @@ export default function SandSim({ gridState } = {}) {
           accept: 'image/*',
           onChange: handleImageUpload
         }),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'threshold-input' }, `Threshold: ${threshold}`),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'threshold-input' }, edgeDetect ? `Edge Threshold: ${threshold}` : `Threshold: ${threshold}`),
         React.createElement('input', {
           id: 'threshold-input',
           className: 'slider-input',
@@ -603,6 +627,18 @@ export default function SandSim({ gridState } = {}) {
             const value = parseInt(e.target.value, 10);
             setThreshold(value);
             refreshImagePreview({ threshold: value });
+          }
+        }),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'edge-detect-input' }, 'Edge Detect'),
+        React.createElement('input', {
+          id: 'edge-detect-input',
+          className: 'seed-input-field',
+          type: 'checkbox',
+          checked: edgeDetect,
+          onChange: (e) => {
+            const value = e.target.checked;
+            setEdgeDetect(value);
+            refreshImagePreview({ edgeDetect: value });
           }
         }),
         React.createElement('label', { className: 'seed-input-label', htmlFor: 'invert-input' }, 'Invert Image'),
