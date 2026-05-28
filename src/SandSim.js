@@ -499,6 +499,12 @@ export default function SandSim({ gridState } = {}) {
     setPaused(true);
   };
 
+  useEffect(() => {
+    if (!uploadedImageSrc) return;
+    refreshImagePreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edgeDetect, invertImage]);
+
   const refreshImagePreview = async (nextSettings = {}) => {
     if (!uploadedImageSrc) return;
     try {
@@ -578,16 +584,7 @@ export default function SandSim({ gridState } = {}) {
               setEdgeDetect(value);
               refreshImagePreview({ edgeDetect: value });
             }
-          }, 'Edge Detect'),
-          React.createElement('button', {
-            type: 'button',
-            className: `toggle-button ${invertImage ? 'active' : ''}`,
-            onClick: () => {
-              const value = !invertImage;
-              setInvertImage(value);
-              refreshImagePreview({ invertImage: value });
-            }
-          }, 'Invert Image')
+          }, 'Edge Detect')
         ),
         React.createElement('label', { className: 'seed-input-label', htmlFor: 'translate-y-input' }, `Translate Y: ${translateY}`),
         React.createElement('input', {
