@@ -38,7 +38,7 @@ const App = () => {
         React.createElement(
           'div',
           { className: 'hero-actions' },
-          React.createElement('a', { className: 'btn btn-primary', href: '#SandSim' }, 'SandSim/Diya'),
+          React.createElement('a', { className: 'btn btn-primary', href: '#SandSim' }, 'SandSim'),
           React.createElement('a', { className: 'btn btn-secondary', href: '#contact' }, 'Contact')
         )
       ),
