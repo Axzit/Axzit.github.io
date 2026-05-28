@@ -54,6 +54,22 @@ a {
   color: #071124;
 }
 
+.btn-pause {
+  background: linear-gradient(135deg, #ff6b6b, #ff9a8b);
+  color: #071124;
+}
+
+.btn-resume {
+  background: linear-gradient(135deg, #3ecf8e, #5cefbe);
+  color: #071124;
+}
+
+.btn-erase-on {
+  background: linear-gradient(135deg, #ff7d50, #ffb560);
+  color: #071124;
+}
+
+.btn-erase-off,
 .btn-secondary {
   background: rgba(255, 255, 255, 0.08);
   color: #f4f7ff;
