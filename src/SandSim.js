@@ -13,10 +13,8 @@ export default function SandSim({ gridState } = {}) {
 
   const [paused, setPaused] = useState(!!gridState);
   const [eraseMode, setEraseMode] = useState(false);
-  const [gridStateText, setGridStateText] = useState('');
   const [gridCols, setGridCols] = useState(0);
   const [gridRows, setGridRows] = useState(0);
-  const [seedInput, setSeedInput] = useState('');
   const [threshold, setThreshold] = useState(128);
   const [invertImage, setInvertImage] = useState(false);
   const [edgeDetect, setEdgeDetect] = useState(false);
@@ -284,12 +282,9 @@ export default function SandSim({ gridState } = {}) {
           setGridRows(gridRef.current.h);
           if (gridState) {
             gridRef.current.loadState(gridState);
-            setGridStateText(formatStateText(gridRef.current.getState()));
           } else {
             const initialSeed = gridRef.current.randomize();
             seedRef.current = initialSeed;
-            setSeedInput(String(initialSeed));
-            setGridStateText(formatStateText(gridRef.current.getState()));
           }
         };
 
@@ -329,7 +324,6 @@ export default function SandSim({ gridState } = {}) {
             const resizeSeed = seedRef.current;
             const actualSeed = gridRef.current.randomize(resizeSeed);
             seedRef.current = actualSeed;
-            setSeedInput(String(actualSeed));
           }
         };
 
@@ -378,29 +372,6 @@ export default function SandSim({ gridState } = {}) {
     };
   }, []);
 
-  const formatStateText = (state) =>
-    state.map((row) => row.map((cell) => (cell ? '1' : '0')).join('')).join('\n');
-
-  const parseStateText = (text) => {
-    const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
-    if (lines.length === 0) return [];
-    const parsed = lines.map((line) => {
-      const values = Array.from(line).map((char) => {
-        if (char === '1') return 1;
-        if (char === '0') return 0;
-        return null;
-      });
-      if (values.includes(null)) throw new Error('Only 0 and 1 characters are allowed.');
-      return values;
-    });
-    return parsed;
-  };
-
-  const getSeedValue = () => {
-    if (!seedInput) return null;
-    const parsed = parseInt(seedInput, 10);
-    return Number.isNaN(parsed) ? null : parsed;
-  };
 
   const buildImageState = (img, cols, rows, options) => {
     const { threshold: thresholdValue, invertImage: invert, translateX: tx, translateY: ty } = options;
@@ -498,7 +469,6 @@ export default function SandSim({ gridState } = {}) {
     }
     setGridCols(state[0]?.length || gridCols);
     setGridRows(state.length || gridRows);
-    setGridStateText(formatStateText(state));
     setPaused(true);
   };
 
@@ -526,9 +496,6 @@ export default function SandSim({ gridState } = {}) {
     if (!gridRef.current) return;
     const actualSeed = gridRef.current.randomize(seed);
     seedRef.current = actualSeed;
-    setSeedInput(String(actualSeed));
-    const state = gridRef.current.getState();
-    setGridStateText(formatStateText(state));
     setPaused(true);
   };
 
@@ -549,20 +516,6 @@ export default function SandSim({ gridState } = {}) {
   const handleRandomize = () => {
     userInteractedRef.current = true;
     randomizeGrid();
-  };
-
-  const handleApplyState = () => {
-    try {
-      const state = parseStateText(gridStateText);
-      userInteractedRef.current = true;
-      if (gridRef.current) {
-        gridRef.current.clear();
-        gridRef.current.loadState(state);
-      }
-      setPaused(true);
-    } catch (e) {
-      alert(e.message || 'Invalid grid format. Use rows of 0 and 1 only.');
-    }
   };
 
   const togglePause = () => {
@@ -591,31 +544,18 @@ export default function SandSim({ gridState } = {}) {
       React.createElement(
         'div',
         { className: 'sandsim-state-editor' },
-        React.createElement(
-          'h3',
-          { className: 'state-editor-title' },
-          `Initial State ${gridCols && gridRows ? `(${gridCols}×${gridRows})` : ''}`
+        React.createElement('div', { className: 'image-import-panel' },
+          React.createElement('label', { className: 'image-import-label', htmlFor: 'image-file-input' }, 'Use Image'),
+          React.createElement('input', {
+            id: 'image-file-input',
+            ref: fileInputRef,
+            className: 'image-file-input',
+            type: 'file',
+            accept: 'image/*',
+            onChange: handleImageUpload
+          })
         ),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'seed-input' }, 'Perlin Noise Seed'),
-        React.createElement('input', {
-          id: 'seed-input',
-          className: 'seed-input-field',
-          type: 'text',
-          value: seedInput,
-          onChange: (e) => setSeedInput(e.target.value),
-          placeholder: 'Auto-generated seed',
-          inputMode: 'numeric'
-        }),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'image-file-input' }, 'Import Image File'),
-        React.createElement('input', {
-          id: 'image-file-input',
-          ref: fileInputRef,
-          className: 'seed-input-field',
-          type: 'file',
-          accept: 'image/*',
-          onChange: handleImageUpload
-        }),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'threshold-input' }, edgeDetect ? `Edge Threshold: ${threshold}` : `Threshold: ${threshold}`),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'threshold-input' }, `Threshold: ${threshold}`),
         React.createElement('input', {
           id: 'threshold-input',
           className: 'slider-input',
@@ -629,44 +569,26 @@ export default function SandSim({ gridState } = {}) {
             refreshImagePreview({ threshold: value });
           }
         }),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'edge-detect-input' }, 'Edge Detect'),
-        React.createElement('input', {
-          id: 'edge-detect-input',
-          className: 'seed-input-field',
-          type: 'checkbox',
-          checked: edgeDetect,
-          onChange: (e) => {
-            const value = e.target.checked;
-            setEdgeDetect(value);
-            refreshImagePreview({ edgeDetect: value });
-          }
-        }),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'invert-input' }, 'Invert Image'),
-        React.createElement('input', {
-          id: 'invert-input',
-          className: 'seed-input-field',
-          type: 'checkbox',
-          checked: invertImage,
-          onChange: (e) => {
-            const value = e.target.checked;
-            setInvertImage(value);
-            refreshImagePreview({ invertImage: value });
-          }
-        }),
-        React.createElement('label', { className: 'seed-input-label', htmlFor: 'translate-x-input' }, `Translate X: ${translateX}`),
-        React.createElement('input', {
-          id: 'translate-x-input',
-          className: 'slider-input',
-          type: 'range',
-          min: -Math.max(16, Math.floor(gridCols / 2)),
-          max: Math.max(16, Math.floor(gridCols / 2)),
-          value: translateX,
-          onChange: (e) => {
-            const value = parseInt(e.target.value, 10);
-            setTranslateX(value);
-            refreshImagePreview({ translateX: value });
-          }
-        }),
+        React.createElement('div', { className: 'toggle-row' },
+          React.createElement('button', {
+            type: 'button',
+            className: `toggle-button ${edgeDetect ? 'active' : ''}`,
+            onClick: () => {
+              const value = !edgeDetect;
+              setEdgeDetect(value);
+              refreshImagePreview({ edgeDetect: value });
+            }
+          }, 'Edge Detect'),
+          React.createElement('button', {
+            type: 'button',
+            className: `toggle-button ${invertImage ? 'active' : ''}`,
+            onClick: () => {
+              const value = !invertImage;
+              setInvertImage(value);
+              refreshImagePreview({ invertImage: value });
+            }
+          }, 'Invert Image')
+        ),
         React.createElement('label', { className: 'seed-input-label', htmlFor: 'translate-y-input' }, `Translate Y: ${translateY}`),
         React.createElement('input', {
           id: 'translate-y-input',
@@ -681,16 +603,7 @@ export default function SandSim({ gridState } = {}) {
             refreshImagePreview({ translateY: value });
           }
         }),
-        imageProcessingError && React.createElement('div', { className: 'image-error-text' }, imageProcessingError),
-        React.createElement('textarea', {
-          className: 'state-editor-textarea',
-          value: gridStateText,
-          onChange: (e) => setGridStateText(e.target.value),
-          placeholder: 'Paste or edit rows of 0 and 1 here',
-          rows: 1,
-          cols: Math.max(28, gridCols || 28)
-        }),
-        React.createElement('button', { className: 'btn btn-primary state-editor-btn', onClick: handleApplyState }, 'Apply State')
+        imageProcessingError && React.createElement('div', { className: 'image-error-text' }, imageProcessingError)
       )
     ),
     React.createElement(SandSimControls, {
