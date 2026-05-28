@@ -19,8 +19,15 @@
   font-size: 1.5rem;
 }
 
+.sandsim-container {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
 .sandsim-canvas-wrap {
-  width: 100%;
+  flex: 1;
   max-height: 70vh;
   background: rgba(10, 12, 18, 0.6);
   border-radius: 12px;
@@ -40,12 +47,96 @@
   user-select: none;
 }
 
+.sandsim-state-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 220px;
+  min-width: 180px;
+}
+
+.state-editor-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.seed-input-label {
+  font-size: 0.85rem;
+  color: #bbb;
+  margin-top: 6px;
+}
+
+.seed-input-field {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #ddd;
+  font-size: 13px;
+}
+
+.seed-input-field:focus {
+  outline: none;
+  border-color: #666;
+  background: #222;
+}
+
+.slider-input {
+  width: 100%;
+}
+
+.image-error-text {
+  color: #f88;
+  font-size: 12px;
+}
+
+.state-editor-textarea {
+  flex: 1 1 auto;
+  min-height: 1.5em;
+  max-height: 1.5em;
+  width: 100%;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #444;
+  overflow: auto;
+  resize: horizontal;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #ddd;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre;
+  word-break: normal;
+  overflow: auto;
+  resize: vertical;
+}
+
+.state-editor-textarea:focus {
+  outline: none;
+  border-color: #666;
+  background: #222;
+}
+
+.state-editor-btn {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
 .sandsim-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 8px;
   justify-content: center;
   padding: 8px 0;
+}
+
+.sandsim-actions .btn {
+  flex: 0 1 auto;
+  min-width: 90px;
 }
 
 .sandsim-back {
@@ -60,6 +151,15 @@
 
   .sandsim-title {
     font-size: 1.25rem;
+  }
+
+  .sandsim-container {
+    flex-direction: column;
+  }
+
+  .sandsim-state-editor {
+    width: 100%;
+    max-height: 30vh;
   }
 
   .sandsim-actions {

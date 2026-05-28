@@ -1,7 +1,7 @@
 import React from 'https://esm.sh/react@18.3.1';
 import SandSimControls from './SandSimControls.js';
 
-export default function SandSim() {
+export default function SandSim({ gridState } = {}) {
   const { useEffect, useRef, useState } = React;
   const containerRef = useRef(null);
   const p5Ref = useRef(null);
@@ -11,8 +11,20 @@ export default function SandSim() {
   const eraseRef = useRef(false);
   const userInteractedRef = useRef(false);
 
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(!!gridState);
   const [eraseMode, setEraseMode] = useState(false);
+  const [gridStateText, setGridStateText] = useState('');
+  const [gridCols, setGridCols] = useState(0);
+  const [gridRows, setGridRows] = useState(0);
+  const [seedInput, setSeedInput] = useState('');
+  const [threshold, setThreshold] = useState(128);
+  const [invertImage, setInvertImage] = useState(false);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [uploadedImageSrc, setUploadedImageSrc] = useState('');
+  const [imageProcessingError, setImageProcessingError] = useState('');
+  const seedRef = React.useRef(null);
+  const fileInputRef = React.useRef(null);
 
   const res = 4;
 
@@ -81,20 +93,49 @@ export default function SandSim() {
           this.w = Math.floor(this.p.width / this.res);
           this.h = Math.floor(this.p.height / this.res);
           this.cells = Array.from({ length: this.w }, () => Array(this.h).fill(false));
+          this.cellColors = null;
         }
 
         clear() {
           this.cells = Array.from({ length: this.w }, () => Array(this.h).fill(false));
+          this.cellColors = null;
         }
 
-        randomize(scaleX = 0.08, scaleY = 0.08, cutoff = 0.5) {
-          this.p.noiseSeed(Math.floor(Math.random() * 1000000));
+        randomize(seed = null, scaleX = 0.08, scaleY = 0.08, cutoff = 0.5) {
+          this.cellColors = null;
+          const seedValue = seed ?? Math.floor(Math.random() * 1000000);
+          this.p.noiseSeed(seedValue);
           for (let i = 0; i < this.w; i++) {
             for (let j = 0; j < this.h; j++) {
               const noiseVal = this.p.noise(i * scaleX, j * scaleY);
               this.cells[i][j] = noiseVal < cutoff;
             }
           }
+          return seedValue;
+        }
+
+        loadState(state, colors = null) {
+          if (!Array.isArray(state) || state.length === 0) return;
+          this.cellColors = null;
+          if (Array.isArray(colors) && colors.length) {
+            this.cellColors = Array.from({ length: this.w }, () => Array(this.h).fill(null));
+          }
+          for (let j = 0; j < Math.min(state.length, this.h); j++) {
+            if (!Array.isArray(state[j])) continue;
+            for (let i = 0; i < Math.min(state[j].length, this.w); i++) {
+              const value = state[j][i];
+              this.cells[i][j] = value === 1 || value === '1' || value === true;
+              if (this.cellColors && Array.isArray(colors[j]) && colors[j][i]) {
+                this.cellColors[i][j] = colors[j][i];
+              }
+            }
+          }
+        }
+
+        getState() {
+          return Array.from({ length: this.h }, (_, j) =>
+            Array.from({ length: this.w }, (_, i) => (this.cells[i][j] ? 1 : 0))
+          );
         }
 
         createParticle(x, y) {
@@ -111,8 +152,17 @@ export default function SandSim() {
 
         update() {
           const newCells = Array.from({ length: this.w }, () => Array(this.h).fill(false));
+          const newColors = this.cellColors
+            ? Array.from({ length: this.w }, () => Array(this.h).fill(null))
+            : null;
+
+          const setParticle = (x, y, color) => {
+            newCells[x][y] = true;
+            if (newColors) newColors[x][y] = color;
+          };
+
           for (let i = 0; i < this.w; i++) {
-            newCells[i][this.h - 1] = true;
+            setParticle(i, this.h - 1, this.cellColors ? this.cellColors[i][this.h - 1] : null);
           }
 
           const falling = Array.from({ length: this.w }, () => Array(this.h).fill(false));
@@ -161,9 +211,10 @@ export default function SandSim() {
               if (!this.cells[i][j]) continue;
               const belowOccupied = hasSupportBelow(i, j);
               const belowIsFalling = belowOccupied && falling[i][j + 1];
+              const color = this.cellColors ? this.cellColors[i][j] : null;
 
               if (!belowOccupied || belowIsFalling) {
-                newCells[i][j + 1] = true;
+                setParticle(i, j + 1, color);
                 continue;
               }
 
@@ -171,24 +222,28 @@ export default function SandSim() {
               const rightAvailable = i < this.w - 1 && !this.cells[i + 1][j + 1];
 
               if (j !== lowestMovable[i]) {
-                newCells[i][j] = true;
+                setParticle(i, j, color);
                 continue;
               }
 
               if (leftAvailable && rightAvailable) {
-                if (Math.random() < 0.5) newCells[i - 1][j + 1] = true;
-                else newCells[i + 1][j + 1] = true;
+                if (Math.random() < 0.5) {
+                  setParticle(i - 1, j + 1, color);
+                } else {
+                  setParticle(i + 1, j + 1, color);
+                }
               } else if (leftAvailable) {
-                newCells[i - 1][j + 1] = true;
+                setParticle(i - 1, j + 1, color);
               } else if (rightAvailable) {
-                newCells[i + 1][j + 1] = true;
+                setParticle(i + 1, j + 1, color);
               } else {
-                newCells[i][j] = true;
+                setParticle(i, j, color);
               }
             }
           }
 
           this.cells = newCells;
+          if (newColors) this.cellColors = newColors;
         }
 
         draw() {
@@ -200,9 +255,13 @@ export default function SandSim() {
               if (!this.cells[i][j]) continue;
               const pressure = colCounts[i];
               const pNorm = this.h > 1 ? pressure / (this.h - 1) : 0;
-              const layer = Math.min(11, Math.floor(pNorm * 12));
-              const hue = Math.round(50 + layer * 25 + (((i * 97 + j * 131) % 9) - 4));
-              this.p.stroke(`hsl(${hue}, 84%, 64%)`);
+              if (this.cellColors && this.cellColors[i] && this.cellColors[i][j]) {
+                this.p.stroke(this.cellColors[i][j]);
+              } else {
+                const layer = Math.min(11, Math.floor(pNorm * 12));
+                const hue = Math.round(50 + layer * 25 + (((i * 97 + j * 131) % 9) - 4));
+                this.p.stroke(`hsl(${hue}, 84%, 64%)`);
+              }
               this.p.point(i * this.res, j * this.res);
               colCounts[i]++;
             }
@@ -220,7 +279,17 @@ export default function SandSim() {
           const canvas = p.canvas?.elt;
           if (canvas) removeTouchHandlers = attachTouchHandlers(canvas);
           gridRef.current = new Grid(res, p);
-          gridRef.current.randomize();
+          setGridCols(gridRef.current.w);
+          setGridRows(gridRef.current.h);
+          if (gridState) {
+            gridRef.current.loadState(gridState);
+            setGridStateText(formatStateText(gridRef.current.getState()));
+          } else {
+            const initialSeed = gridRef.current.randomize();
+            seedRef.current = initialSeed;
+            setSeedInput(String(initialSeed));
+            setGridStateText(formatStateText(gridRef.current.getState()));
+          }
         };
 
         p.draw = () => {
@@ -240,8 +309,10 @@ export default function SandSim() {
           if (!userInteractedRef.current && !pausedRef.current && p.frameCount % 30 === 0) {
             const grid = gridRef.current;
             const centerX = Math.floor(Math.random() * grid.w);
-            for (let k = 0; k < 4; k++) {
-              grid.createParticle((centerX + k - 2) * res + res / 2, res * 2);
+            for (let k = 0; k < 10; k++) {
+              for (let h = 0; h < 3; h++) {
+                grid.createParticle((centerX + k - 5) * res + res / 2, res * 2 + h * res);
+              }
             }
           }
 
@@ -254,7 +325,10 @@ export default function SandSim() {
           p.resizeCanvas(size.w, size.h);
           if (gridRef.current) {
             gridRef.current = new Grid(res, p);
-            gridRef.current.randomize();
+            const resizeSeed = seedRef.current;
+            const actualSeed = gridRef.current.randomize(resizeSeed);
+            seedRef.current = actualSeed;
+            setSeedInput(String(actualSeed));
           }
         };
 
@@ -303,6 +377,146 @@ export default function SandSim() {
     };
   }, []);
 
+  const formatStateText = (state) =>
+    state.map((row) => row.map((cell) => (cell ? '1' : '0')).join('')).join('\n');
+
+  const parseStateText = (text) => {
+    const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+    if (lines.length === 0) return [];
+    const parsed = lines.map((line) => {
+      const values = Array.from(line).map((char) => {
+        if (char === '1') return 1;
+        if (char === '0') return 0;
+        return null;
+      });
+      if (values.includes(null)) throw new Error('Only 0 and 1 characters are allowed.');
+      return values;
+    });
+    return parsed;
+  };
+
+  const getSeedValue = () => {
+    if (!seedInput) return null;
+    const parsed = parseInt(seedInput, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const buildImageState = (img, cols, rows, options) => {
+    const { threshold: thresholdValue, invertImage: invert, translateX: tx, translateY: ty } = options;
+    const size = Math.min(img.width, img.height);
+    const centerX = Math.floor(img.width / 2 + tx);
+    const centerY = Math.floor(img.height / 2 + ty);
+    const sx = Math.max(0, Math.min(img.width - size, centerX - Math.floor(size / 2)));
+    const sy = Math.max(0, Math.min(img.height - size, centerY - Math.floor(size / 2)));
+    const canvas = document.createElement('canvas');
+    canvas.width = cols;
+    canvas.height = rows;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, cols, rows);
+    ctx.drawImage(img, sx, sy, size, size, 0, 0, cols, rows);
+    const data = ctx.getImageData(0, 0, cols, rows).data;
+    const state = Array.from({ length: rows }, (_, j) =>
+      Array.from({ length: cols }, (_, i) => {
+        const idx = (j * cols + i) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const a = data[idx + 3];
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        const filled = a < 128 || luminance < thresholdValue;
+        return invert ? (filled ? 0 : 1) : (filled ? 1 : 0);
+      })
+    );
+    const colors = Array.from({ length: rows }, (_, j) =>
+      Array.from({ length: cols }, (_, i) => {
+        const idx = (j * cols + i) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const a = data[idx + 3];
+        return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+      })
+    );
+    return { state, colors };
+  };
+
+  const processImageSource = (src, options = {}) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const cols = gridCols || gridRef.current?.w || 32;
+        const rows = gridRows || gridRef.current?.h || 32;
+        try {
+          resolve(buildImageState(img, cols, rows, options));
+        } catch (error) {
+          reject(error);
+        }
+      };
+      img.onerror = () => reject(new Error('Could not load image file'));
+      img.src = src;
+    });
+
+  const applyImageSource = async (src, options = {}) => {
+    if (!src) return;
+    setImageProcessingError('');
+    const { state, colors } = await processImageSource(src, {
+      threshold,
+      invertImage,
+      translateX,
+      translateY,
+      ...options
+    });
+    if (gridRef.current) {
+      gridRef.current.clear();
+      gridRef.current.loadState(state, colors);
+    }
+    setGridCols(state[0]?.length || gridCols);
+    setGridRows(state.length || gridRows);
+    setGridStateText(formatStateText(state));
+    setPaused(true);
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const src = reader.result;
+      setUploadedImageSrc(src);
+      try {
+        await applyImageSource(src);
+      } catch (err) {
+        setImageProcessingError(err?.message || 'Failed to import image');
+      }
+    };
+    reader.onerror = () => {
+      setImageProcessingError('Error reading image file');
+    };
+    reader.readAsDataURL(file);
+    if (event.target) event.target.value = '';
+  };
+
+  const randomizeGrid = (seed = null) => {
+    if (!gridRef.current) return;
+    const actualSeed = gridRef.current.randomize(seed);
+    seedRef.current = actualSeed;
+    setSeedInput(String(actualSeed));
+    const state = gridRef.current.getState();
+    setGridStateText(formatStateText(state));
+    setPaused(true);
+  };
+
+  const refreshImagePreview = async (nextSettings = {}) => {
+    if (!uploadedImageSrc) return;
+    try {
+      await applyImageSource(uploadedImageSrc, nextSettings);
+    } catch (err) {
+      setImageProcessingError(err?.message || 'Failed to update image preview');
+    }
+  };
+
   const handleClear = () => {
     userInteractedRef.current = true;
     if (gridRef.current) gridRef.current.clear();
@@ -310,7 +524,21 @@ export default function SandSim() {
 
   const handleRandomize = () => {
     userInteractedRef.current = true;
-    if (gridRef.current) gridRef.current.randomize();
+    randomizeGrid();
+  };
+
+  const handleApplyState = () => {
+    try {
+      const state = parseStateText(gridStateText);
+      userInteractedRef.current = true;
+      if (gridRef.current) {
+        gridRef.current.clear();
+        gridRef.current.loadState(state);
+      }
+      setPaused(true);
+    } catch (e) {
+      alert(e.message || 'Invalid grid format. Use rows of 0 and 1 only.');
+    }
   };
 
   const togglePause = () => {
@@ -332,7 +560,103 @@ export default function SandSim() {
       React.createElement('h2', { className: 'sandsim-title' }, 'SandSim'),
       React.createElement('button', { className: 'btn btn-secondary', onClick: () => (window.location.hash = '#') }, 'Back')
     ),
-    React.createElement('div', { className: 'sandsim-canvas-wrap', ref: containerRef }),
+    React.createElement(
+      'div',
+      { className: 'sandsim-container' },
+      React.createElement('div', { className: 'sandsim-canvas-wrap', ref: containerRef }),
+      React.createElement(
+        'div',
+        { className: 'sandsim-state-editor' },
+        React.createElement(
+          'h3',
+          { className: 'state-editor-title' },
+          `Initial State ${gridCols && gridRows ? `(${gridCols}×${gridRows})` : ''}`
+        ),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'seed-input' }, 'Perlin Noise Seed'),
+        React.createElement('input', {
+          id: 'seed-input',
+          className: 'seed-input-field',
+          type: 'text',
+          value: seedInput,
+          onChange: (e) => setSeedInput(e.target.value),
+          placeholder: 'Auto-generated seed',
+          inputMode: 'numeric'
+        }),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'image-file-input' }, 'Import Image File'),
+        React.createElement('input', {
+          id: 'image-file-input',
+          ref: fileInputRef,
+          className: 'seed-input-field',
+          type: 'file',
+          accept: 'image/*',
+          onChange: handleImageUpload
+        }),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'threshold-input' }, `Threshold: ${threshold}`),
+        React.createElement('input', {
+          id: 'threshold-input',
+          className: 'slider-input',
+          type: 'range',
+          min: 0,
+          max: 255,
+          value: threshold,
+          onChange: (e) => {
+            const value = parseInt(e.target.value, 10);
+            setThreshold(value);
+            refreshImagePreview({ threshold: value });
+          }
+        }),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'invert-input' }, 'Invert Image'),
+        React.createElement('input', {
+          id: 'invert-input',
+          className: 'seed-input-field',
+          type: 'checkbox',
+          checked: invertImage,
+          onChange: (e) => {
+            const value = e.target.checked;
+            setInvertImage(value);
+            refreshImagePreview({ invertImage: value });
+          }
+        }),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'translate-x-input' }, `Translate X: ${translateX}`),
+        React.createElement('input', {
+          id: 'translate-x-input',
+          className: 'slider-input',
+          type: 'range',
+          min: -Math.max(16, Math.floor(gridCols / 2)),
+          max: Math.max(16, Math.floor(gridCols / 2)),
+          value: translateX,
+          onChange: (e) => {
+            const value = parseInt(e.target.value, 10);
+            setTranslateX(value);
+            refreshImagePreview({ translateX: value });
+          }
+        }),
+        React.createElement('label', { className: 'seed-input-label', htmlFor: 'translate-y-input' }, `Translate Y: ${translateY}`),
+        React.createElement('input', {
+          id: 'translate-y-input',
+          className: 'slider-input',
+          type: 'range',
+          min: -Math.max(16, Math.floor(gridRows / 2)),
+          max: Math.max(16, Math.floor(gridRows / 2)),
+          value: translateY,
+          onChange: (e) => {
+            const value = parseInt(e.target.value, 10);
+            setTranslateY(value);
+            refreshImagePreview({ translateY: value });
+          }
+        }),
+        imageProcessingError && React.createElement('div', { className: 'image-error-text' }, imageProcessingError),
+        React.createElement('textarea', {
+          className: 'state-editor-textarea',
+          value: gridStateText,
+          onChange: (e) => setGridStateText(e.target.value),
+          placeholder: 'Paste or edit rows of 0 and 1 here',
+          rows: 1,
+          cols: Math.max(28, gridCols || 28)
+        }),
+        React.createElement('button', { className: 'btn btn-primary state-editor-btn', onClick: handleApplyState }, 'Apply State')
+      )
+    ),
     React.createElement(SandSimControls, {
       paused,
       eraseMode,
